@@ -1,0 +1,409 @@
+{
+  "constants": {
+    "METHANE_ENERGY": 0.006305,
+    "H2_ENERGY": 0.039389,
+    "INCOME_WEIGHT": 0,
+    "FULFILLMENT_WEIGHT": 0.6,
+    "pr_CO2": 0.025,
+    "CH4_to_CO2_factor": 2.75,
+    "H2_TO_METHANE": 0.5,
+    "PEAK_RMSD": 1.0693029029,
+    "MIN_INCOME": -26875.717205459492,
+    "MAX_INCOME": 7954.206175268439
+  },
+  "Gasstation": {
+    "input": {
+      "loading_time": 604800,
+      "offset_time": 216000.0,
+      "V_h2_tank": 5,
+      "p_last_h2_tank": 700000.0,
+      "p_min_h2_tank": 100000.0,
+      "p_max_h2_tank": 30000000.0,
+      "p_h2_grid": 1000000.0,
+      "p_min_h2_grid": 300000.0,
+      "p_max_h2_grid": 3000000.0,
+      "m_h2_max": 0.0005,
+      "X_h2_set": 0.95
+    },
+    "output": {
+      "m_h2_int": 0,
+      "m_h2": 0,
+      "pressure_h2": 0
+    },
+    "metadata": {
+      "fmu_directory": "../Modelle/H2_Tankstelle/MGRID_0ch_FMU_H2_0usecases_H2_0delivery_02021_006_030.fmu",
+      "name": "Gasstation",
+      "EMS": {
+        "eta": 1,
+        "E_max": 124.06002136288448,
+        "E_0": 2.894733831800638,
+        "P_max": 0.0005,
+        "name": "Gasstation",
+        "Opt_Range": [
+          0,
+          1
+        ],
+        "steering": true,
+        "Outputs": [
+          "E",
+          "P"
+        ],
+        "type": "Storage"
+      }
+    }
+  },
+  "Gasgrid": {
+    "input": {},
+    "output": {
+      "gas_demand_m3_h": 0.0,
+      "gas_demand_m3_s": 0.0,
+      "gas_demand_kw": 0.0,
+      "gas_demand_Brennwert": 0.0,
+      "gas_demand_price_kwh": 0.0,
+      "gas_demand_price_Mwh": 0.0,
+      "gas_demand_price_J": 0.0,
+      "gas_demand_kg_s": 0.0
+    },
+    "metadata": {
+      "table_directory": "../EMS/library/Daten/Gasdemand_test",
+      "name": "Gasgrid",
+      "EMS": {
+        "name": "Gasgrid",
+        "directory": "../EMS/library/Daten/Gasdemand_test",
+        "steering": false,
+        "Outputs": [
+          "time",
+          "value",
+          "Brennwert",
+          "gas_demand_price_kwh"
+        ],
+        "type": "Prediction"
+      }
+    }
+  },
+  "BHKW": {
+    "input": {
+      "X_set_BHKW": 0,
+      "P_BHKW_last": 0
+    },
+    "output": {
+      "P_BHKW": 0,
+      "Q_BHKW": 0,
+      "m_CH4_BHKW": 0,
+      "m_CO2_BHKW": 0
+    },
+    "metadata": {
+      "fmu_directory": "../Modelle/MGRID_FMU_BHKW_Environment_0BHKW_02021_011_018.fmu",
+      "P_max_KWK": 2026000,
+      "P_min_KWK": 709100.0,
+      "t_startup": 120,
+      "Eta_therm_KWK": 0.423,
+      "name": "BHKW",
+      "EMS": {
+        "P_min": 709100,
+        "P_max": 2026000,
+        "Ramp_Rate": 5909,
+        "LUT": "../EMS/library/LUT/BHKW.mat",
+        "name": "BHKW",
+        "Opt_Range": [
+          0,
+          1
+        ],
+        "steering": true,
+        "Outputs": [
+          "m_CH4",
+          "P_el",
+          "Q"
+        ],
+        "type": "Converter"
+      }
+    }
+  },
+  "HP": {
+    "input": {
+      "X_set_HP": 0,
+      "P_HP_last": 0
+    },
+    "output": {
+      "Q_HP": 0
+    },
+    "metadata": {
+      "P_max": 100000,
+      "P_min": 1500,
+      "t_startup": 20,
+      "COP_HP": 3.0,
+      "name": "HP"
+    }
+  },
+  "BGP": {
+    "input": {},
+    "output": {
+      "m_CH4_BG": 0,
+      "m_CO2_BG": 0,
+      "P_inject_BG": 0
+    },
+    "metadata": {
+      "fmu_directory": "../Modelle/FMU_Biogas_Environment_0Biogas_02020_012.fmu",
+      "name": "BGP",
+      "EMS": {
+        "directory": "../EMS/library/LUT/BGP_prediction",
+        "name": "BGP",
+        "steering": false,
+        "Outputs": [
+          "time",
+          "m_CH4",
+          "m_CO2",
+          "P_el"
+        ],
+        "type": "Prediction"
+      }
+    }
+  },
+  "bat": {
+    "input": {
+      "X_set_Bat": 0,
+      "SOC_0": 0.5,
+      "P_max_Bat": 500000,
+      "EBat": 10800000000,
+      "eta_Bat": 0.93
+    },
+    "output": {
+      "P_Bat": 0,
+      "SOC": 0
+    },
+    "metadata": {
+      "fmu_directory": "../Modelle/MGRID_02206_FMU_Battery_02022_012_014.fmu",
+      "name": "bat",
+      "EMS": {
+        "eta": 0.93,
+        "E_max": 10800000000,
+        "E_0": 5400000000.0,
+        "P_max": 500000,
+        "name": "bat",
+        "Opt_Range": [
+          -1,
+          1
+        ],
+        "steering": true,
+        "Outputs": [
+          "E",
+          "P"
+        ],
+        "type": "Storage"
+      }
+    }
+  },
+  "Methanation": {
+    "input": {
+      "p_ch4_tank": 1200000.0,
+      "pressure_min_ch4": 0,
+      "pressure_max_ch4": 2500000.0,
+      "p_h2_tank": 1500000.0,
+      "pressure_min_h2": 500000.0,
+      "pressure_max_h2": 3000000.0,
+      "P_last_meth": 200000.0,
+      "X_set_meth": 0.8,
+      "t_ramp_meth": 60,
+      "P_max_meth": 1000000,
+      "P_min_meth": 310000
+    },
+    "output": {
+      "m_ch4_meth": 0,
+      "m_h2_meth": 0,
+      "m_co2_meth": 0,
+      "P_meth": 0,
+      "Q_meth": 0
+    },
+    "metadata": {
+      "fmu_directory": "../Modelle/methanation/MGRID_FMU_Methanation_Environment_0Methanation_02021_005_020.fmu",
+      "name": "Methanation",
+      "EMS": {
+        "P_min": 310000,
+        "P_max": 1000000,
+        "Ramp_Rate": 5166,
+        "LUT": "../EMS/library/LUT/Methanation_new.mat",
+        "name": "Methanation",
+        "Opt_Range": [
+          0,
+          1
+        ],
+        "steering": true,
+        "Outputs": [
+          "m_CH4",
+          "m_H2",
+          "m_CO2",
+          "P",
+          "Q"
+        ],
+        "type": "Converter"
+      }
+    }
+  },
+  "pem": {
+    "input": {
+      "Eta_PEM": 0.73,
+      "P_max_PEM": 1000000,
+      "P_min_PEM": 310000.0,
+      "p_h2_tank": 1500000,
+      "pressure_min_h2": 0,
+      "pressure_max_h2": 7000000,
+      "P_last_PEM": 200000,
+      "X_set_PEM": 0.8,
+      "t_ramp_PEM": 60
+    },
+    "output": {
+      "m_H2_EL": 0.0,
+      "P_EL": 0.0
+    },
+    "metadata": {
+      "fmu_directory": "../Modelle/pem/MGRID_0ch_FMU_PEM_Environment_0Electrolysis_02021_006_002.fmu",
+      "name": "pem",
+      "EMS": {
+        "P_min": 310000,
+        "P_max": 1000000,
+        "RampRate": 5166,
+        "LUT": "../EMS/library/LUT/PEM.mat",
+        "name": "pem",
+        "Opt_Range": [
+          0,
+          1
+        ],
+        "steering": true,
+        "Outputs": [
+          "P_el",
+          "m_H2"
+        ],
+        "type": "Converter"
+      }
+    }
+  },
+  "Usecase": {
+    "input": {
+      "PWin": 10000000,
+      "A_PV": 25000
+    },
+    "output": {
+      "P_PV": 0.0,
+      "P_el_demand": 0.0,
+      "P_Wind": 0.0,
+      "m_gasdemand": 0.0
+    },
+    "metadata": {
+      "direction_pow_demand": "../EMS/library/Daten/el_load_Hafen_KA_2017.mat",
+      "direction_heat_demand": "../EMS/library/Daten/heat_demand_Hafen_KA_2017.mat",
+      "weather_data": "../EMS/library/Daten/tmy_EnergiebergKA_2007_2016.mos",
+      "fmu_directory": "../Modelle/MGRID_0ch_FMU_UseCase_UseCase_02020_010_030_NEU.fmu",
+      "name": "Usecase",
+      "EMS": {
+        "name": "Usecase",
+        "directory": "../EMS/library/LUT/Usecase_data",
+        "steering": false,
+        "Outputs": [
+          "time",
+          "P_Wind",
+          "P_PV",
+          "m_gasdemand",
+          "P_el_demand"
+        ],
+        "type": "Prediction"
+      }
+    }
+  },
+  "Electricitygrid": {
+    "input": {},
+    "output": {
+      "Electricity_demand_W": 0.0,
+      "Electricity_demand_price": 0.0
+    },
+    "metadata": {
+      "table_directory": "../EMS/library/Daten/Electricity_grid_2019",
+      "name": "Electricitygrid",
+      "EMS": {
+        "name": "Electricitygrid",
+        "directory": "../EMS/library/Daten/Electricity_grid_2019",
+        "steering": false,
+        "Outputs": [
+          "time",
+          "price",
+          "P_el"
+        ],
+        "type": "Prediction"
+      }
+    }
+  },
+  "Gasstorage": {
+    "input": {
+      "Eta": 0.995,
+      "m_Gasstorage_max": 0.2777777777777778,
+      "mass_Gasstorage_0": 1500,
+      "mass_Gasstorage_max": 3000,
+      "X_CH4_set": 0
+    },
+    "output": {
+      "mass_Gasstorage": 0.0,
+      "SOC_Gasstorage": 0.0,
+      "m_Gasstorage": 0.0
+    },
+    "metadata": {
+      "table_directory": "../EMS/library/Daten/Gasdemand_test",
+      "name": "Gasstorage",
+      "EMS": {
+        "eta": 0.995,
+        "E_max": 3000,
+        "E_0": 1500,
+        "P_max": 0.2777777777777778,
+        "name": "Gasstorage",
+        "Opt_Range": [
+          -1,
+          1
+        ],
+        "steering": true,
+        "Outputs": [
+          "E",
+          "P"
+        ],
+        "type": "Storage"
+      }
+    }
+  },
+  "campus_nord": {
+    "input": {},
+    "output": {
+      "time": 0,
+      "P_el": 0.0,
+      "time_relative": 0.0
+    },
+    "metadata": {
+      "table_directory": "../EMS/library/Daten/campus_nord",
+      "name": "campus_nord",
+      "EMS": {
+        "name": "campus_nord",
+        "directory": "../EMS/library/Daten/campus_nord",
+        "steering": false,
+        "type": "Prediction",
+        "Outputs": [
+          "time",
+          "time_relative",
+          "P_el"
+        ]
+      }
+    }
+  },
+  "Lastreihe": {
+    "input": {},
+    "output": {},
+    "metadata": {
+      "name": "Lastreihe",
+      "EMS": {
+        "name": "Lastreihe",
+        "directory": "../EMS/library/Daten/Lastreihe_CN_2019_corrected",
+        "steering": false,
+        "Outputs": [
+          "time",
+          "P_el"
+        ],
+        "type": "Prediction"
+      }
+    }
+  }
+}

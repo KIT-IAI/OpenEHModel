@@ -1,0 +1,43 @@
+stages:
+  - test
+  - build
+
+test:
+  stage: test
+  image: python:3.12-slim
+  before_script:
+    - pip install uv
+    - uv venv .venv
+    - . .venv/bin/activate
+    - uv pip install pyomo redis paho-mqtt numpy pandas matplotlib seaborn requests pytest pytest-cov
+  script:
+    - python -m pytest tests/ --cov=. --cov-report=term-missing --cov-report=html --cov-fail-under=80
+  coverage: '/TOTAL\s+\d+\s+\d+\s+(\d+%)/'
+  artifacts:
+    when: always
+    paths:
+      - htmlcov/
+      - .coverage
+
+build_and_push:
+  stage: build
+  tags:
+    - iai
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: ["/busybox/sh", "-c"]
+  variables:
+    REGISTRY: 'iai-artifactory.iai.kit.edu'
+    IMAGE_NAME: docker-it4es/energyhub-mqtt
+    DOCKER_CONFIG: /kaniko/.docker/
+  before_script:
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$REGISTRY\":{\"auth\":\"$(echo -n \"$REGISTRY_USER:$REGISTRY_PASSWORD\" | base64)\"}}}" > /kaniko/.docker/config.json
+    - echo "$AUTH" > /kaniko/.docker/config.json
+  script:
+    - /kaniko/executor --dockerfile=Dockerfile --context=$(pwd) --destination=$REGISTRY/$IMAGE_NAME:latest --cleanup
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: manual
+      allow_failure: true
+    - if: $CI_PIPELINE_SOURCE == "push"

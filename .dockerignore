@@ -1,0 +1,11 @@
+*.pdf
+*.pyc
+.venv*
+.vscode*
+.idea*
+__pycache__*
+gurobi*
+tmp*
+mqttresults*
+output*
+logs/*

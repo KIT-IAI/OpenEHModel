@@ -1,0 +1,188 @@
+\documentclass[]{article}
+
+\usepackage{mathtools}
+
+\begin{document}
+\section{Global}
+\subsection{Objekte}
+Energietypen: $i \in EC$ (Energy Carrier) Zeit: $t \in T$, Komponenten: $d \in D$
+Insgesamt gibt es folgende Objekte:
+\begin{itemize}
+    \item Grid: $G \subset D$ externes Energienetz ("Slack") kann Energie Ein- oder Verkaufen
+    \item Renewable Generation: $R \subset D$ lokale Erzeugung von Energie, wird immer eingespeist
+    \item Demand: $D \subset D$ lokale Verbraucher mit bekannten Lastprofilen
+    \item Converter $C \subset D$ Umwandlung von verschiedenen Energietypen z.B. Elektrolyse, BHKW
+    \item Storage $S \subset D$ Speicherung von Energie (Batterie, Gasspeicher, \ldots)
+\end{itemize}
+\subsection{Komponenten}
+Alle Komponenten: $p_{d,i,t}$ Leistung zum Zeitpunkt.
+Vorzeichen +: Leistung geht aus der Komponente raus, -: Leistung geht in die Komponente rein.
+Global eine Einheit für jeden Energietyp festlegen, bei Modellierung der Geräte beachten.
+\subsection{Energiebalance}
+\begin{equation}
+    \sum_{D} p_{d,i,t} = 0 \quad \forall i \in EC \quad \forall t \in T
+\end{equation}
+\subsection{Objectives}
+Summe der einzelnen Objectives der Komponenten. Eventuell noch global gewichten nach Wirtschaftlich/Co2/Fulfillment/\ldots
+\section{(External) Grid}
+Anschluss ans Netz, auch möglich für simpel modellierte eigene Erzeugung.
+$G \subset D$ ist die Menge der Komponenten, die als Supply fungieren.
+\subsection{Konstanten}
+\begin{itemize}
+    \item $c_{d,i,t}$: Preis per Energietyp, per Zeitpunkt im Ein-/Verkauf.
+    \item $P_{d,i,t}^{+}$: Maximaler Einkauf per Energietyp, per Zeitpunkt
+    \item $P_{d,i,t}^{-}$: Maximaler Verkauf per Energietyp, per Zeitpunkt (Negative Zahl)
+\end{itemize}
+\subsection{Constraints}
+\begin{equation}
+    p_{d,i,t} \leq P_{d,i,t}^{+} \quad \forall i \in EC \quad \forall t \in T
+\quad \forall d \in S
+\end{equation}
+\begin{equation}
+    p_{d,i,t} \geq P_{d,i,t}^{-} \quad \forall i \in EC \quad \forall t \in T
+\quad \forall d \in S
+\end{equation}
+\subsection{Objectives}
+Kosten für Energie/Einspeisung:
+\begin{equation}
+    \sum_{i=1}^{EC} \sum_{t=1}^{T} p_{d,i,t} \cdot c_{d,i,t}
+\end{equation}
+
+\section{Renewable Generation}
+Lokale, Fixe Erzeugung von Energie. $G \subset D$
+\subsection{Konstanten}
+$P_{d,i,t}^{+}$: Einspeisung pro Energietyp, pro Zeitpunkt
+\subsection{Constraints}
+Einspeisung findet immer statt:
+\begin{equation}
+    p_{d,i,t} = P_{d,i,t}^{+} \quad \forall i \in EC \quad \forall t \in T \quad \forall d \in G
+\end{equation}
+
+\section{Demand}
+Lokale Verbraucher mit fixen Lastprofilen. $D \subset S$
+Wenn man die Bedarfsdeckung weglässt auch mit Renewable Generation zusammengefasst möglich.
+\subsection{Konstanten}
+$L_{d,i,t}$: Last per Energietyp, per Zeitpunkt (Negative Zahl)
+\subsection{Constraints}
+Bedarf wird gedeckt, mit Kostenfunktion unten weglassen.
+\begin{equation}
+    p_{d,i,t} = L_{d,i,t} \quad \forall i \in EC \quad \forall t \in T \quad \forall d \in D
+\end{equation}
+
+
+\section{Converter}
+Umwandlung von verschiedenen Energietypen. $C \subset S$. Kann mehrere Inputs und Outputs haben.
+\subsection{Konstanten}
+\begin{itemize}
+    \item $P_{d,i}^{max}$: Maximale Leistung per Energietyp - als Negative Zahl angeben, wenn Input
+    \item $P_{d,i}^{min}$: Minimale Leistung per Energietyp - als Negative Zahl angeben, wenn Input
+    \item $EC_{in}$: Menge der Energietypen, die als Input verwendet werden
+    \item $EC_{out}$: Menge der Energietypen, die als Output verwendet werden
+    \item $CF_{d,i}$: Umwandlungsfaktor per Energietyp (z.B. 10kWh Strom erzeugt $1m^3$ Gas: $E_{d,strom} = \frac{1}{10}$ und $E_{d,gas} = 1$) (Global festgesetzte Einheiten beachten)
+    \item $R_{d}^{up}$: Maximale Änderung der Leistung pro Zeitschritt nach oben (ramp up) als Anteil der Maximalleistung
+    \item $R_{d}^{down}$: Maximale Änderung der Leistung pro Zeitschritt nach unten (ramp down) als Anteil der Maximalleistung
+\end{itemize}
+\subsection{Variablen}
+\begin{itemize}
+    \item $sp_{d,t} \in [0,1]$ Setpoint als Anteil der maximalen Leistung zur Steuerung
+    \item $a_{d,t}$ Binäre Entscheidungsvariable, ob der Prozess aktiv ist oder nicht
+\end{itemize}
+\subsection{Constraints}
+Inputs kleiner Null:
+\begin{equation}
+    p_{d,i,t} \leq 0 \quad \forall i \in EC_{in} \quad \forall t \in T \quad \forall d \in C
+\end{equation}
+Outputs größer Null:
+\begin{equation}
+    p_{d,i,t} \geq 0 \quad \forall i \in EC_{out} \quad \forall t \in T \quad \forall d \in C
+\end{equation}
+Umwandlungsbilanz - hier ist Effizienz implizit enthalten:
+\begin{equation}
+    \sum_{EC_{in}} p_{d,i,t} \cdot CF_{d,i} - \sum_{EC_{out}}p_{d,i,t} \cdot CF_{d,i} = 0 \quad \forall d \in C \quad \forall t \in T
+\end{equation}
+Produziert Mindestenergie:
+\begin{equation}
+    P_{d,i}^{min} \cdot a_{d,t} \leq P_{d,i}^{max} \cdot sp_{d,t} \quad \forall i \in EC_{out} \quad \forall t \in T \quad \forall d \in C
+\end{equation}
+\begin{equation}
+    P_{d,i}^{min} \cdot a_{d,t} >= P_{d,i}^{max} \cdot sp_{d,t} \quad \forall i \in EC_{in} \quad \forall t \in T \quad \forall d \in C
+\end{equation}
+Output:
+\begin{equation}
+    p_{d,i,t} = P_{d,i}^{max} \cdot sp_{d,t} \quad \forall i \in EC \quad \forall t \in T \quad \forall d \in C
+\end{equation}
+Setpoint und Aktivität sind parallel:
+\begin{equation}
+    0 \leq a_{d,t} - sp_{d,t} \quad \forall t \in T \quad \forall d \in G
+\end{equation}
+Vorher inaktiv: mindestens auf $P_{d,i}^{min}$ hochfahren, ansonsten Rampe beachten:
+Hierfür: $sp_{min}$ (Nur zur Lesbarkeit, keine Optimierungsvariable)
+\begin{equation}
+    sp_{min} \cdot P_{d,i}^{max} = P_{d,i}^{min}
+\end{equation}
+\begin{equation}
+    sp_{d,i,t} - sp_{d,i,t-1} \leq R_{d}^{up} \cdot a_{d,t - 1} \quad \forall i \in EC \quad \forall t \in T \quad \forall d \in G
+\end{equation}
+\begin{equation}
+    sp_{d,i,t} \geq sp_{min} \cdot a_{d,t} \quad \forall i \in EC \quad \forall t \in T \quad \forall d \in G
+\end{equation}
+Ramp down:
+\begin{equation}
+    sp_{d,i,t-1} - sp_{d,i,t} \leq R_{d}^{down} \quad \forall i \in EC \quad \forall t \in T \quad \forall d \in G
+\end{equation}
+\section{Storage}
+Gedacht als: Speicherung von Energie z.B. Batterie. $B \subset D$ Nur ein Energietyp als Input und Output.
+\subsection{Konstanten}
+\begin{itemize}
+    \item $P_{d}^{+}$: Maximale Positive Leistung - Entladerate
+    \item $P_{d}^{-}$: Maximale Negative Leistung - Laderate
+    \item $\eta_{d} \in [0,1]$: Entladeeffizienz
+    \item $\eta_{c} \in [0,1]$: Ladeeffizienz
+    \item $C_{d}$: Kapazität
+    \item $\Delta t$: Zeitschrittgröße
+\end{itemize}
+\subsection{Variablen}
+\begin{itemize}
+    \item $soc_{d,t} \in [0,1]$ State of Charge per Energietyp, per Zeitpunkt (Anteil der Kapazität)
+    \item $sp_{d,t} \in [-1,1]$ Setpoint als Anteil der maximalen Leistung zur Steuerung des Ladens/Entladens ($<0$: Laden, $>0$: Entladen)
+    \item $y_t \in \{0,1\}$ Hilfsvariable ob geladen oder entladen wird (ergibt sich aus $sp_{d,t}$) (1 = entladen, 0 = laden)
+\end{itemize}
+\subsection{Constraints}
+Hilfsvariable $y_{t} = 1$ wenn entladen wird
+\begin{equation}
+    sp_{d,t} >= -(1 - y_{t}) \quad \forall t \in T \quad \forall d \in B
+\end{equation}
+$y_{t} = 0$ wenn geladen wird
+\begin{equation}
+    sp_{d,t} <= y_{t} \quad \forall t \in T \quad \forall d \in B
+\end{equation}
+Leistung kleiner als Maximale Entladerate
+\begin{equation}
+    p_{d,t} \leq P_{d}^{+} \quad \forall t \in T \quad \forall d \in B
+\end{equation}
+Leistung größer als Maximale Laderate
+\begin{equation}
+    p_{d,t} \geq - P_{d,t}^{-} \quad \forall t \in T \quad \forall d \in B
+\end{equation}
+Output kleiner als State of Charge
+\begin{equation}
+    y_{t} \cdot p_{d,t} \cdot (E_{discharge})^{-1} \cdot \Delta t\leq soc_{d,t} \cdot C_{d} \quad \forall t \in T \quad \forall d \in B
+\end{equation}
+Input kleiner als Kapazität und Maximaler Laderate
+\begin{equation}
+    (1 - y_{t}) \cdot p_{d,t} \cdot E_{charge} \cdot \Delta t \leq C_{d} \cdot soc_{d,t} \quad \forall t \in T \quad \forall d \in B
+\end{equation}
+Setpoints für laden und entladen:
+\begin{equation}
+    p_{d,t} = P_{d}^{+} \cdot sp_{d,t} \cdot y_{t} + P_{d}^{-} \cdot  sp_{d,t} \cdot (1 - y_{t})\quad \forall t \in T \quad \forall d \in B
+\end{equation}
+Hilfsvariable für absolute Ladung (nur zur Lesbarkeit)
+\begin{equation}
+    c_{d,t} = soc_{d,t} \cdot C_{d} \quad \forall t \in T \quad \forall d \in B
+\end{equation}
+Damit: Konsistenter State of Charge
+\begin{equation}
+    c_{d,t} = c_{d,t-1} - (p_{d,t} \cdot y_{t} \cdot \eta_{c} + (1 - y_{t}) \cdot p_{d,t} \cdot \eta_{d}^{-1}) \cdot \Delta t \quad \forall t \in T \quad \forall d \in B
+\end{equation}
+Wenn $t=0$ dann $p = 0$, initialen Wert von $soc$ nehmen.
+\end{document}

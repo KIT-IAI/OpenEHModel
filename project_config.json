@@ -1,0 +1,51 @@
+{
+    "paths": {
+        "data_dir": "Daten",
+        "output_dir": "output",
+        "logs_dir": "logs",
+        "ea_results_folder": "Daten/ea_first_results/res",
+        "timeseries_file": "TargetFromResults.pkl",
+        "gas_demand_file": "Daten/Gasdemand_test.pkl",
+        "electricity_price_file": "Daten/electricity_grid_2022.pkl",
+        "heat_demand_file": "Daten/Heat_Demand_Series.pkl",
+        "default_load_file": "Daten/Lastreihe_CN_04-11_04_2022.pkl",
+        "mqtt_results_folder": "mqttresults",
+        "solver_log": "solver.log"
+    },
+    "solver": {
+        "ipopt_executable": "ipopt"
+    },
+    "optimization": {
+        "timesteps_per_day": 96,
+        "timestep_seconds": 900,
+        "default_days": 5,
+        "mw_conversion_factor": 1000000
+    },
+    "weights": {
+        "income_weight": 0.01,
+        "fulfillment_weight": 0.99,
+        "income_weight_single_step": 0.1,
+        "fulfillment_weight_single_step": 0.9
+    },
+    "constraints": {
+        "peak_rmsd": 1.0,
+        "min_mean_deviation": 0,
+        "min_income": 0,
+        "max_income": 1000000
+    },
+    "output": {
+        "all_results_quadratic": "output/all_results_quadratic_test.json",
+        "all_results_linear": "output/all_results_lin_test.json",
+        "schedule_quadratic": "output/res_sched_quad.csv",
+        "schedule_linear": "output/res_sched_lin.csv",
+        "ea_results": "output/ea_results.json",
+        "ea_stats": "output/ea_stats.txt",
+        "miqp_stats": "output/miqp_stats.txt",
+        "milp_stats": "output/milp_stats.txt",
+        "gleam_curve": "gleam_curve.json",
+        "simpleplot_prefix": "simpleplot"
+    },
+    "mqtt": {
+        "log_file": "logs/mqtt_runner.log"
+    }
+}
